@@ -19,6 +19,7 @@
 struct pwrseq {
 	const struct of_device_id *pwrseq_of_match_table;
 	struct list_head node;
+	struct device *dev;
 	int (*get)(struct device_node *np, struct pwrseq *p);
 	int (*on)(struct pwrseq *p);
 	void (*off)(struct pwrseq *p);
@@ -35,9 +36,10 @@ struct pwrseq_list_per_dev {
 };
 
 #if IS_ENABLED(CONFIG_POWER_SEQUENCE)
-struct pwrseq *of_pwrseq_on(struct device_node *np);
+struct pwrseq *of_pwrseq_on(struct device *dev, struct device_node *np);
 void of_pwrseq_off(struct pwrseq *pwrseq);
-int of_pwrseq_on_list(struct device_node *np, struct list_head *head);
+int of_pwrseq_on_list(struct device *dev, struct device_node *np,
+		      struct list_head *head);
 void of_pwrseq_off_list(struct list_head *head);
 int pwrseq_suspend(struct pwrseq *p);
 int pwrseq_resume(struct pwrseq *p);
@@ -49,7 +51,8 @@ static inline struct pwrseq *of_pwrseq_on(struct device_node *np)
 	return NULL;
 }
 static void of_pwrseq_off(struct pwrseq *pwrseq) {}
-static int of_pwrseq_on_list(struct device_node *np, struct list_head *head)
+static int of_pwrseq_on_list(struct device *dev, struct device_node *np,
+			     struct list_head *head)
 {
 	return 0;
 }

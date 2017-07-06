@@ -1677,7 +1677,7 @@ static int hub_of_pwrseq_on(struct usb_hub *hub)
 		parent = bus_to_hcd(hdev->bus)->self.sysdev;
 
 	for_each_child_of_node(parent->of_node, np) {
-		ret = of_pwrseq_on_list(np, &hub->pwrseq_list);
+		ret = of_pwrseq_on_list(parent, np, &hub->pwrseq_list);
 		/* Maybe no power sequence library is chosen */
 		if (ret && ret != -ENOENT)
 			return ret;

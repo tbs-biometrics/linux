@@ -22,6 +22,7 @@
 #include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/power/pwrseq.h>
+#include <linux/device.h>
 
 /*
  * Static power sequence match table
@@ -73,7 +74,7 @@ static void pwrseq_put(struct pwrseq *p)
  * Return a pointer to the power sequence instance on success, or NULL if
  * not exist, or an error code on failure.
  */
-struct pwrseq *of_pwrseq_on(struct device_node *np)
+struct pwrseq *of_pwrseq_on(struct device *dev, struct device_node *np)
 {
 	struct pwrseq *pwrseq;
 	int ret;
@@ -90,6 +91,7 @@ struct pwrseq *of_pwrseq_on(struct device_node *np)
 	if (IS_ERR(pwrseq))
 		return pwrseq;
 
+	pwrseq->dev = dev;
 	ret = pwrseq_get(np, pwrseq);
 	if (ret)
 		goto pwr_put;
@@ -135,7 +137,8 @@ EXPORT_SYMBOL_GPL(of_pwrseq_off);
  *
  * Return 0 on success, or -ENOENT if not exist, or an error value on failure.
  */
-int of_pwrseq_on_list(struct device_node *np, struct list_head *head)
+int of_pwrseq_on_list(struct device *dev, struct device_node *np,
+		      struct list_head *head)
 {
 	struct pwrseq *pwrseq;
 	struct pwrseq_list_per_dev *pwrseq_list_node;
@@ -144,7 +147,7 @@ int of_pwrseq_on_list(struct device_node *np, struct list_head *head)
 	if (!pwrseq_list_node)
 		return -ENOMEM;
 
-	pwrseq = of_pwrseq_on(np);
+	pwrseq = of_pwrseq_on(dev, np);
 	if (!pwrseq)
 		return -ENOENT;
 
