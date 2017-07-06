@@ -17,6 +17,7 @@ Required properties:
 
 Optional properties:
 - clocks: the input clocks for device.
+- power-gpios: Should specify the GPIO for power.
 - reset-gpios: Should specify the GPIO for reset.
 - reset-duration-us: the duration in microsecond for assert reset signal.
 - vbus-supply: A regulator which must have this following name "pwrseq-regulator"

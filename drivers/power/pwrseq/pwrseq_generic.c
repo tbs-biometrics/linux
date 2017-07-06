@@ -32,6 +32,7 @@ struct pwrseq_generic {
 	struct pwrseq pwrseq;
 	struct gpio_desc *gpiod_reset;
 	struct regulator *regulator;
+	struct gpio_desc *gpiod_power;
 	struct clk *clks[PWRSEQ_MAX_CLKS];
 	u32 duration_us;
 	bool suspended;
@@ -82,6 +83,9 @@ static void pwrseq_generic_put(struct pwrseq *pwrseq)
 	if (pwrseq_gen->gpiod_reset)
 		gpiod_put(pwrseq_gen->gpiod_reset);
 
+	if (pwrseq_gen->gpiod_power)
+		gpiod_put(pwrseq_gen->gpiod_power);
+
 	for (clk = 0; clk < PWRSEQ_MAX_CLKS; clk++)
 		clk_put(pwrseq_gen->clks[clk]);
 
@@ -110,6 +114,7 @@ static int pwrseq_generic_on(struct pwrseq *pwrseq)
 	struct pwrseq_generic *pwrseq_gen = to_generic_pwrseq(pwrseq);
 	int clk, ret = 0;
 	struct gpio_desc *gpiod_reset = pwrseq_gen->gpiod_reset;
+	struct gpio_desc *gpiod_power = pwrseq_gen->gpiod_power;
 
 	for (clk = 0; clk < PWRSEQ_MAX_CLKS && pwrseq_gen->clks[clk]; clk++) {
 		ret = clk_prepare_enable(pwrseq_gen->clks[clk]);
@@ -135,6 +140,9 @@ static int pwrseq_generic_on(struct pwrseq *pwrseq)
 			pr_err("Failed to enable regulator\n");
 	}
 
+	if (gpiod_power)
+		gpiod_set_value(gpiod_power, 1);
+
 	return ret;
 
 err_disable_clks:
@@ -148,7 +156,7 @@ static int pwrseq_generic_get(struct device_node *np, struct pwrseq *pwrseq)
 {
 	struct pwrseq_generic *pwrseq_gen = to_generic_pwrseq(pwrseq);
 	enum of_gpio_flags flags;
-	int reset_gpio, clk, ret = 0;
+	int reset_gpio, power_gpio, clk, ret = 0;
 
 	for (clk = 0; clk < PWRSEQ_MAX_CLKS; clk++) {
 		pwrseq_gen->clks[clk] = of_clk_get(np, clk);
@@ -159,6 +167,30 @@ static int pwrseq_generic_get(struct device_node *np, struct pwrseq *pwrseq)
 			pwrseq_gen->clks[clk] = NULL;
 			break;
 		}
+	}
+
+	power_gpio = of_get_named_gpio_flags(np, "power-gpios", 0, &flags);
+	if (gpio_is_valid(power_gpio)) {
+		unsigned long gpio_flags;
+
+		if (flags & OF_GPIO_ACTIVE_LOW)
+			gpio_flags = GPIOF_ACTIVE_LOW | GPIOF_OUT_INIT_LOW;
+		else
+			gpio_flags = GPIOF_OUT_INIT_HIGH;
+
+		ret = gpio_request_one(power_gpio, gpio_flags,
+				       "pwrseq-power-gpios");
+		if (ret)
+			goto err_put_clks;
+
+		pwrseq_gen->gpiod_power = gpio_to_desc(power_gpio);
+	} else if (power_gpio == -ENOENT) {
+		; /* no such gpio */
+	} else {
+		ret = power_gpio;
+		pr_err("Failed to get power gpio on %s, err = %d\n",
+				np->full_name, power_gpio);
+		goto err_put_clks;
 	}
 
 	reset_gpio = of_get_named_gpio_flags(np, "reset-gpios", 0, &flags);
@@ -194,7 +226,6 @@ static int pwrseq_generic_get(struct device_node *np, struct pwrseq *pwrseq)
 		ret = PTR_ERR(pwrseq_gen->regulator);
 		goto err_put_clks;
 	}
-
 
 	return 0;
 
