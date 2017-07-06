@@ -32,6 +32,8 @@
 static const struct of_device_id pwrseq_match_table_list[] = {
 	{ .compatible = "usb424,2513", .data = &pwrseq_generic_alloc_instance},
 	{ .compatible = "usb424,2514", .data = &pwrseq_generic_alloc_instance},
+	{ .compatible = "zte,pwrseq-mg3732",
+	  .data = &pwrseq_generic_alloc_instance},
 	{ /* sentinel */ }
 };
 
