@@ -19,6 +19,7 @@ Optional properties:
 - clocks: the input clocks for device.
 - reset-gpios: Should specify the GPIO for reset.
 - reset-duration-us: the duration in microsecond for assert reset signal.
+- vbus-supply: A regulator which must have this following name "pwrseq-regulator"
 
 Below is the example of USB power sequence properties on USB device
 nodes which have two level USB hubs.

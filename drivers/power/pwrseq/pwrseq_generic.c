@@ -26,10 +26,12 @@
 #include <linux/slab.h>
 
 #include <linux/power/pwrseq.h>
+#include <linux/regulator/consumer.h>
 
 struct pwrseq_generic {
 	struct pwrseq pwrseq;
 	struct gpio_desc *gpiod_reset;
+	struct regulator *regulator;
 	struct clk *clks[PWRSEQ_MAX_CLKS];
 	u32 duration_us;
 	bool suspended;
@@ -96,6 +98,11 @@ static void pwrseq_generic_off(struct pwrseq *pwrseq)
 
 	for (clk = PWRSEQ_MAX_CLKS - 1; clk >= 0; clk--)
 		clk_disable_unprepare(pwrseq_gen->clks[clk]);
+
+	if (pwrseq_gen->regulator) {
+		if (regulator_disable(pwrseq_gen->regulator))
+			pr_err("Failed to disable regulator\n");
+	}
 }
 
 static int pwrseq_generic_on(struct pwrseq *pwrseq)
@@ -120,6 +127,12 @@ static int pwrseq_generic_on(struct pwrseq *pwrseq)
 		else
 			usleep_range(duration_us, duration_us + 100);
 		gpiod_set_value(gpiod_reset, 0);
+	}
+
+	if (pwrseq_gen->regulator) {
+		ret = regulator_enable(pwrseq_gen->regulator);
+		if (ret)
+			pr_err("Failed to enable regulator\n");
 	}
 
 	return ret;
@@ -173,6 +186,15 @@ static int pwrseq_generic_get(struct device_node *np, struct pwrseq *pwrseq)
 				np->full_name, reset_gpio);
 		goto err_put_clks;
 	}
+
+        pwrseq_gen->regulator = devm_regulator_get_optional(pwrseq->dev,
+							    "pwrseq-regulator");
+	if (IS_ERR(pwrseq_gen->regulator)) {
+		pr_err("Could not get regulator supply\n");
+		ret = PTR_ERR(pwrseq_gen->regulator);
+		goto err_put_clks;
+	}
+
 
 	return 0;
 
