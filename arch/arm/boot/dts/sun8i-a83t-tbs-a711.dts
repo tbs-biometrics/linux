@@ -90,6 +90,13 @@
 	};
 };
 
+&mmc0 {
+	vmmc-supply = <&reg_vcc3v3>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc0_pins>;
+	status = "okay";
+};
+
 &mmc1 {
 	mmc-pwrseq = <&wifi_pwrseq>;
 	bus-width = <4>;
