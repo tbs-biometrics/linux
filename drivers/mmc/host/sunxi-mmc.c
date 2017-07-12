@@ -657,7 +657,7 @@ static int sunxi_mmc_oclk_onoff(struct sunxi_mmc_host *host, u32 oclk_en)
 	unsigned long expire = jiffies + msecs_to_jiffies(750);
 	u32 rval;
 
-	dev_dbg(mmc_dev(host->mmc), "%sabling the clock\n",
+	dev_info(mmc_dev(host->mmc), "%sabling the clock\n",
 		oclk_en ? "en" : "dis");
 
 	rval = mmc_readl(host, REG_CLKCR);
@@ -736,7 +736,7 @@ static int sunxi_mmc_clk_set_phase(struct sunxi_mmc_host *host,
 			index = SDXC_CLK_50M_DDR;
 		}
 	} else {
-		dev_dbg(mmc_dev(host->mmc), "Invalid clock... returning\n");
+		dev_info(mmc_dev(host->mmc), "Invalid clock... returning\n");
 		return -EINVAL;
 	}
 
@@ -764,22 +764,6 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 	if (!ios->clock)
 		return 0;
 
-	/*
-	 * Under the old timing mode, 8 bit DDR requires the module
-	 * clock to be double the card clock. Under the new timing
-	 * mode, all DDR modes require a doubled module clock.
-	 *
-	 * We currently only support the standard MMC DDR52 mode.
-	 * This block should be updated once support for other DDR
-	 * modes is added.
-	 */
-	if (ios->timing == MMC_TIMING_MMC_DDR52 &&
-	    (host->use_new_timings ||
-	     ios->bus_width == MMC_BUS_WIDTH_8)) {
-		div = 2;
-		clock <<= 1;
-	}
-
 	if (host->use_new_timings) {
 		ret = sunxi_ccu_set_mmc_timing_mode(host->clk_mmc, true);
 		if (ret) {
@@ -795,7 +779,7 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 			clock, rate);
 		return rate;
 	}
-	dev_dbg(mmc_dev(mmc), "setting clk to %d, rounded %ld\n",
+	dev_info(mmc_dev(mmc), "setting clk to %d, rounded %ld\n",
 		clock, rate);
 
 	/* setting clock rate */
@@ -809,7 +793,6 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 	/* set internal divider */
 	rval = mmc_readl(host, REG_CLKCR);
 	rval &= ~0xff;
-	rval |= div - 1;
 	mmc_writel(host, REG_CLKCR, rval);
 
 	if (host->use_new_timings) {
@@ -838,9 +821,6 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 	ret = sunxi_mmc_oclk_onoff(host, 1);
 	if (ret)
 		return ret;
-
-	/* And we just enabled our clock back */
-	mmc->actual_clock = rate / div;
 
 	return 0;
 }
@@ -878,11 +858,11 @@ static void sunxi_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		if (host->ferror)
 			return;
 
-		dev_dbg(mmc_dev(mmc), "power on!\n");
+		dev_info(mmc_dev(mmc), "power on!\n");
 		break;
 
 	case MMC_POWER_OFF:
-		dev_dbg(mmc_dev(mmc), "power off!\n");
+		dev_info(mmc_dev(mmc), "power off!\n");
 		sunxi_mmc_reset_host(host);
 		if (!IS_ERR(mmc->supply.vmmc))
 			mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, 0);

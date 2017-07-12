@@ -17,6 +17,7 @@ lib-$(CONFIG_SUNXI_CCU)		+= ccu_nkm.o
 lib-$(CONFIG_SUNXI_CCU)		+= ccu_nkmp.o
 lib-$(CONFIG_SUNXI_CCU)		+= ccu_nm.o
 lib-$(CONFIG_SUNXI_CCU)		+= ccu_mp.o
+lib-$(CONFIG_SUNXI_CCU)		+= ccu_mmc_nts.o
 
 # SoC support
 obj-$(CONFIG_SUN50I_A64_CCU)	+= ccu-sun50i-a64.o

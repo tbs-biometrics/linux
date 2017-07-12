@@ -129,6 +129,9 @@ static int ccu_mp_set_rate(struct clk_hw *hw, unsigned long rate,
 	max_m = cmp->m.max ?: 1 << cmp->m.width;
 	max_p = cmp->p.max ?: 1 << ((1 << cmp->p.width) - 1);
 
+	printk("%s %d: rate %lu parent %lu\n",
+	       __func__, __LINE__, rate, parent_rate);
+
 	ccu_mp_find_best(parent_rate, rate, max_m, max_p, &m, &p);
 
 	spin_lock_irqsave(cmp->common.lock, flags);
@@ -138,6 +141,8 @@ static int ccu_mp_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg &= ~GENMASK(cmp->p.width + cmp->p.shift - 1, cmp->p.shift);
 	reg |= (m - cmp->m.offset) << cmp->m.shift;
 	reg |= ilog2(p) << cmp->p.shift;
+
+	printk("%s %d: M %d P %d\n", __func__, __LINE__, m, p);
 
 	writel(reg, cmp->common.base + cmp->common.reg);
 

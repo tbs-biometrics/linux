@@ -62,9 +62,6 @@ int sunxi_ccu_get_mmc_timing_mode(struct clk *clk)
 	struct clk_hw *hw = __clk_get_hw(clk);
 	struct ccu_common *cm = hw_to_ccu_common(hw);
 
-	if (cm->features & CCU_FEATURE_MMC_ALWAYS_NEW)
-		return 1;
-
 	if (!(cm->features & CCU_FEATURE_MMC_TIMING_SWITCH))
 		return -ENOTSUPP;
 

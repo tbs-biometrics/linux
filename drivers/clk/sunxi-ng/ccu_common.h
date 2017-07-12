@@ -24,7 +24,6 @@
 #define CCU_FEATURE_ALL_PREDIV		BIT(4)
 #define CCU_FEATURE_LOCK_REG		BIT(5)
 #define CCU_FEATURE_MMC_TIMING_SWITCH	BIT(6)
-#define CCU_FEATURE_MMC_ALWAYS_NEW	BIT(7)
 
 struct device_node;
 

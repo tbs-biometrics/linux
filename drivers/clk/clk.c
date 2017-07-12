@@ -1623,6 +1623,9 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 {
 	int ret;
 
+	printk("%s %d: clk %s rate %lu\n",
+	       __func__, __LINE__, clk->core->name, rate);
+
 	if (!clk)
 		return 0;
 
