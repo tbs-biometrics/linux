@@ -598,6 +598,11 @@
 				function = "i2c0";
 			};
 
+			i2c1_pins: i2c1-pins {
+				pins = "PH2", "PH3";
+				function = "i2c1";
+			};
+
 			lcd_lvds_pins: lcd-lvds-pins {
 				pins = "PD18", "PD19", "PD20", "PD21", "PD22",
 				       "PD23", "PD24", "PD25", "PD26", "PD27";
