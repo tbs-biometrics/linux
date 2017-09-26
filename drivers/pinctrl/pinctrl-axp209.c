@@ -494,7 +494,6 @@ static int axp20x_pctl_probe(struct platform_device *pdev)
 {
 	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
 	struct axp20x_pctl *pctl;
-	const struct axp20x_desc_pin *pin;
 	struct pinctrl_desc *pctrl_desc;
 	struct pinctrl_pin_desc *pins;
 	struct device_node *np = pdev->dev.of_node;
@@ -574,16 +573,13 @@ static int axp20x_pctl_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	for (i = 0; i < pctl->desc->npins; i++) {
-		pin = pctl->desc->pins + i;
-
-		ret = gpiochip_add_pin_range(&pctl->chip, dev_name(&pdev->dev),
-					     pin->pin.number, pin->pin.number,
-					     1);
-		if (ret) {
-			dev_err(&pdev->dev, "failed to add pin range\n");
-			return ret;
-		}
+	ret = gpiochip_add_pin_range(&pctl->chip, dev_name(&pdev->dev),
+				     pctl->desc->pins->pin.number,
+				     pctl->desc->pins->pin.number,
+				     pctl->desc->npins);
+	if (ret) {
+		dev_err(&pdev->dev, "failed to add pin range\n");
+		return ret;
 	}
 
 	dev_info(&pdev->dev, "AXP209 pinctrl and GPIO driver loaded\n");
