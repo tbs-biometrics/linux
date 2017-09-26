@@ -57,12 +57,12 @@
 		#gpio-cells = <2>;
 
 		gpio0_ldo: gpio0_ldo {
-			pin = "GPIO0";
+			pins = "GPIO0";
 			function = "ldo";
 		};
 
 		gpio1_ldo: gpio1_ldo {
-			pin = "GPIO1";
+			pins = "GPIO1";
 			function = "ldo";
 		};
 	};
